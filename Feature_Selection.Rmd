@@ -1,0 +1,89 @@
+---
+title: "Feature_Selection"
+output: html_document
+date: "2024-10-23"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# import libraries
+library(dplyr)
+library(tidyverse)
+library(glmnet)
+library(car)
+```
+
+```{r}
+employee_data = read.csv("employee_performance.csv")
+head(employee_data)
+
+# Job Satisfaction, Work Life Balance, and Promotions Last 5 Years into Factor
+employee_data$Job_Satisfaction = as.factor(employee_data$Job_Satisfaction)
+employee_data$Work_Life_Balance = as.factor(employee_data$Work_Life_Balance)
+employee_data$Promotions_Last_5_Years = as.factor(employee_data$Promotions_Last_5_Years)
+employee_data$Education_Level = as.factor(employee_data$Education_Level)
+employee_data$Department = as.factor(employee_data$Department)
+head(employee_data)
+```
+
+# Backward
+
+```{r}
+initial_model = lm(Performance_Score ~ ., data = employee_data)
+
+backward_model = step(initial_model, direction = "backward")
+```
+
+# Forward
+```{r}
+initial_model_forward = lm(Performance_Score ~ 1, data = employee_data)
+
+full_model = lm(Performance_Score ~., data = employee_data)
+
+forward_model = step(initial_model_forward, direction = "forward",
+                     scope = formula(full_model))
+forward_model
+```
+
+# Forward-Backward
+
+```{r}
+initial_model_both = lm(Performance_Score ~ 1, data = employee_data)
+
+full_model_both = lm(Performance_Score ~., data = employee_data)
+
+both_model = step(initial_model_both, direction = "both",
+                     scope = formula(full_model_both))
+```
+# Lasso
+
+```{r}
+
+X = data.matrix(subset(employee_data, select = -c(Performance_Score)))
+y = employee_data$Performance_Score
+
+lasso_model = cv.glmnet(X, y, alpha = 1)
+optimal_lambda = lasso_model$lambda.min
+
+print(optimal_lambda)
+```
+```{r}
+lasso_final = glmnet(X, y, alpha = 1, lambda = optimal_lambda)
+coef(lasso_final)
+```
+# Partial F-Test for Reduced Model
+
+```{r}
+reduced_model = lm(Performance_Score ~ Experience + Age + Education_Level + Job_Satisfaction + Annual_Bonus + Work_Hours_Per_Week, data = employee_data)
+
+full_model = lm(Performance_Score ~., data = employee_data)
+
+partial_f_test = anova(reduced_model, full_model)
+print(partial_f_test)
+```
+
+## p-value for partial f test is 0.4446, therefore, we fail to reject the null and conclude that the reduced model is just as good as the full model. 
+

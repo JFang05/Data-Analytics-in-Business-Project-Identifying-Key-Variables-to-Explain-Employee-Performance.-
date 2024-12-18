@@ -1,0 +1,292 @@
+---
+title: "EDA_LinearAndNonlinear_SLR_models"
+author: "bella"
+date: "2024-10-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+```{r}
+# import libraries
+library(ggplot2) 
+library(tidyverse) 
+library(broom)
+library(dplyr)
+library(tidyverse)
+library(ggpmisc)
+library(zoo)
+library(car)
+options(dplyr.summarise.inform = FALSE) 
+
+ep.data <- read.csv("employee_performance.csv", header=TRUE)
+```
+
+### Exploratory Data Analysis (EDA)
+
+#### Simple Linear Regressions: Linear-Linear Models 
+
+```{r}
+# Age
+ggplot(data=ep.data, aes(x=Age, y=Performance_Score)) +
+  geom_point(color='darkgreen') + ggtitle("") +
+  geom_smooth(method='lm') + stat_fit_glance(method = 'lm',
+  method.args = list(formula = y ~ x),  geom = 'text',
+  aes(label = paste("p-value=", signif(after_stat(p.value), digits = 3),
+  "   R-squared=", signif(..r.squared.., digits = 3), sep = "")), size = 5.3, hjust = -0.1)
+
+# Salary
+ggplot(data=ep.data, aes(x=Salary, y=Performance_Score)) +
+  geom_point(color='darkgreen') + ggtitle("") +
+  geom_smooth(method='lm') + stat_fit_glance(method = 'lm',
+  method.args = list(formula = y ~ x),  geom = 'text',
+  aes(label = paste("p-value=", signif(after_stat(p.value), digits = 3),
+  "   R-squared=", signif(..r.squared.., digits = 3), sep = "")), size = 5.3, hjust = -0.1)
+
+# Experience
+ggplot(data=ep.data, aes(x=Experience, y=Performance_Score)) +
+  geom_point(color='darkgreen') + ggtitle("") +
+  geom_smooth(method='lm') + stat_fit_glance(method = 'lm',
+  method.args = list(formula = y ~ x),  geom = 'text',
+  aes(label = paste("p-value=", signif(after_stat(p.value), digits = 3),
+  "   R-squared=", signif(..r.squared.., digits = 3), sep = "")), size = 5.3, hjust = -0.1)
+
+# Education_Level
+ggplot(data=ep.data, aes(x=Education_Level, y=Performance_Score)) +
+  geom_point(color='darkgreen') + ggtitle("") +
+  geom_smooth(method='lm') + stat_fit_glance(method = 'lm',
+  method.args = list(formula = y ~ x),  geom = 'text',
+  aes(label = paste("p-value=", signif(after_stat(p.value), digits = 3),
+  "   R-squared=", signif(..r.squared.., digits = 3), sep = "")), size = 5.3, hjust = -0.1)
+
+# Job_Satisfaction
+ggplot(data=ep.data, aes(x=Job_Satisfaction, y=Performance_Score)) +
+  geom_point(color='darkgreen') + ggtitle("") +
+  geom_smooth(method='lm') + stat_fit_glance(method = 'lm',
+  method.args = list(formula = y ~ x),  geom = 'text',
+  aes(label = paste("p-value=", signif(after_stat(p.value), digits = 3),
+  "   R-squared=", signif(..r.squared.., digits = 3), sep = "")), size = 5.3, hjust = -0.1)
+
+# Work_Life_Balance
+ggplot(data=ep.data, aes(x=Work_Life_Balance, y=Performance_Score)) +
+  geom_point(color='darkgreen') + ggtitle("") +
+  geom_smooth(method='lm') + stat_fit_glance(method = 'lm',
+  method.args = list(formula = y ~ x),  geom = 'text',
+  aes(label = paste("p-value=", signif(after_stat(p.value), digits = 3),
+  "   R-squared=", signif(..r.squared.., digits = 3), sep = "")), size = 5.3, hjust = -0.1)
+
+# Annual_Bonus
+ggplot(data=ep.data, aes(x=Annual_Bonus, y=Performance_Score)) +
+  geom_point(color='darkgreen') + ggtitle("") +
+  geom_smooth(method='lm') + stat_fit_glance(method = 'lm',
+  method.args = list(formula = y ~ x),  geom = 'text',
+  aes(label = paste("p-value=", signif(after_stat(p.value), digits = 3),
+  "   R-squared=", signif(..r.squared.., digits = 3), sep = "")), size = 5.3, hjust = -0.1)
+
+# Commute_Time
+ggplot(data=ep.data, aes(x=Commute_Time, y=Performance_Score)) +
+  geom_point(color='darkgreen') + ggtitle("") +
+  geom_smooth(method='lm') + stat_fit_glance(method = 'lm',
+  method.args = list(formula = y ~ x),  geom = 'text',
+  aes(label = paste("p-value=", signif(after_stat(p.value), digits = 3),
+  "   R-squared=", signif(..r.squared.., digits = 3), sep = "")), size = 5.3, hjust = -0.1)
+
+# Work_Hours_Per_Week
+ggplot(data=ep.data, aes(x=Work_Hours_Per_Week, y=Performance_Score)) +
+  geom_point(color='darkgreen') + ggtitle("") +
+  geom_smooth(method='lm') + stat_fit_glance(method = 'lm',
+  method.args = list(formula = y ~ x),  geom = 'text',
+  aes(label = paste("p-value=", signif(after_stat(p.value), digits = 3),
+  "   R-squared=", signif(..r.squared.., digits = 3), sep = "")), size = 5.3, hjust = -0.1)
+
+# Promotions_Last_5_Years
+ggplot(data=ep.data, aes(x=Promotions_Last_5_Years, y=Performance_Score)) +
+  geom_point(color='darkgreen') + ggtitle("") +
+  geom_smooth(method='lm') + stat_fit_glance(method = 'lm',
+  method.args = list(formula = y ~ x),  geom = 'text',
+  aes(label = paste("p-value=", signif(after_stat(p.value), digits = 3),
+  "   R-squared=", signif(..r.squared.., digits = 3), sep = "")), size = 5.3, hjust = -0.1)
+
+# Training_Hours_Last_Year
+ggplot(data=ep.data, aes(x=Training_Hours_Last_Year, y=Performance_Score)) +
+  geom_point(color='darkgreen') + ggtitle("") +
+  geom_smooth(method='lm') + stat_fit_glance(method = 'lm',
+  method.args = list(formula = y ~ x),  geom = 'text',
+  aes(label = paste("p-value=", signif(after_stat(p.value), digits = 3),
+  "   R-squared=", signif(..r.squared.., digits = 3), sep = "")), size = 5.3, hjust = -0.1)
+
+# Overtime_Hours_Per_Week
+ggplot(data=ep.data, aes(x=Overtime_Hours_Per_Week, y=Performance_Score)) +
+  geom_point(color='darkgreen') + ggtitle("") +
+  geom_smooth(method='lm') + stat_fit_glance(method = 'lm',
+  method.args = list(formula = y ~ x),  geom = 'text',
+  aes(label = paste("p-value=", signif(after_stat(p.value), digits = 3),
+  "   R-squared=", signif(..r.squared.., digits = 3), sep = "")), size = 5.3, hjust = -0.1)
+
+
+```
+
+**Which predictors are statistically significant when alpha=0.05?**
+
+  - Age: p-value close to zero, R^2:0.108
+  - Salary: p-value=0.0147, R^2: 0.000596
+  - Experience: p-value close to zero, R^2: 0.268
+  - Job statisfaction: p-value=0.00434, R^2: 0.000813
+  - work hours per week: p-value close ot zero, R^2:0.109
+  
+**Which predictors are not significant at the 0.05 level?**
+
+  - work-life balance
+  - annual bonus
+  - commute time
+  - promotions last 5 years
+  - training hours last year
+  - overtime hours per week 
+
+**Linearity Assumption:** None of the statistically signficant predictors appear to violate the linearity assumption based of the Response vs Predictor scatter plots. However, before moving on, diagnostic plots will be used to assess goodness of fit and check whether any of the SLR models violate the model assumptions.
+
+```{r}
+# Age
+model.age<- lm(Performance_Score~Age, data=ep.data)
+#summary(model.age)
+plot(model.age)
+```
+
+```{r}
+# Salary
+model.salary<- lm(Performance_Score~Salary, data=ep.data)
+plot(model.salary)
+```
+```{r}
+# Experience
+model.exp<- lm(Performance_Score~Experience, data=ep.data)
+plot(model.exp)
+```
+
+```{r}
+# job Saatisfaction
+model.jobSatisfaction<- lm(Performance_Score~Job_Satisfaction, data=ep.data)
+plot(model.jobSatisfaction)
+```
+
+```{r}
+# work hrs per week
+model.exp<- lm(Performance_Score~Work_Hours_Per_Week, data=ep.data)
+plot(model.exp)
+```
+
+**Constant Variance Assumption:** Based on the residuals vs fitted plots, the constant variance assumption appears to hold for all simple linear regressions with statistically signif predictors. The residuals are randomly scattered about the horizontal line, with no clear patterns in any of the residuals vs fitted plots. 
+
+**Normality Assumption:** The QQ-plots for each simple linear regression shows the residuals adhere closely to the straight line, thus indicating the normality assumption appears to hold for all SLR models. 
+
+**Uncorrelated Error Assumption:** Since the residuals vs fitte plots do not exhibit clear patterns and the points appear random, it does not appear we have autocorrelation in the models, thus the uncorrelated error term assumption holds.
+
+**Influential Points** None of the residuals vs leverage plots show points with a cook's distance (C_i) greater than 1. Thus, at first glance there does not appear to be any highly influential points in the SLR models. 
+
+### Logistic Regression models 
+
+Logistic regression models were created for predictor variables that *do not appear to have a linear relationship* with employee performance or were not statistically significant with a linear-linear model.
+
+```{r}
+# transformations for Work_Life_Balance
+
+m1<- lm(Performance_Score~Work_Life_Balance, data=ep.data)
+summary(m1)$r.squared
+
+m1<- lm(Performance_Score~log(Work_Life_Balance), data=ep.data)
+summary(m1)$r.squared
+
+m2<- lm(log(Performance_Score)~Work_Life_Balance, data=ep.data)
+summary(m2)$r.squared
+
+m3<- lm(log(Performance_Score)~log(Work_Life_Balance), data=ep.data)
+summary(m3)$r.squared
+
+summary(m3)
+```
+
+```{r}
+# annual bonus
+
+m1<- lm(Performance_Score~Annual_Bonus, data=ep.data)
+summary(m1)$r.squared
+
+m1<- lm(Performance_Score~log(Annual_Bonus), data=ep.data)
+summary(m1)$r.squared
+
+m2<- lm(log(Performance_Score)~Annual_Bonus, data=ep.data)
+summary(m2)$r.squared
+
+m3<- lm(log(Performance_Score)~log(Annual_Bonus), data=ep.data)
+summary(m3)$r.squared
+
+```
+```{r}
+  # Promotions_Last_5_Years
+m1<- lm(Performance_Score~Promotions_Last_5_Years, data=ep.data)
+summary(m1)$r.squared
+
+m1<- lm(Performance_Score~log(Promotions_Last_5_Years+1), data=ep.data)
+summary(m1)$r.squared
+
+m2<- lm(log(Performance_Score)~Promotions_Last_5_Years, data=ep.data)
+summary(m2)$r.squared
+
+m3<- lm(log(Performance_Score)~log(Promotions_Last_5_Years+1), data=ep.data)
+summary(m3)$r.squared
+```
+
+
+```{r}
+# training hours last year
+m1<- lm(Performance_Score~Training_Hours_Last_Year, data=ep.data)
+summary(m1)$r.squared
+
+m1<- lm(Performance_Score~log(Training_Hours_Last_Year+1), data=ep.data)
+summary(m1)$r.squared
+
+m2<- lm(log(Performance_Score)~Training_Hours_Last_Year, data=ep.data)
+summary(m2)$r.squared
+
+m3<- lm(log(Performance_Score)~log(Training_Hours_Last_Year+1), data=ep.data)
+summary(m3)$r.squared
+summary(m3)
+```
+```{r}
+ggplot(ep.data, aes(x=log(Performance_Score), y=log(Training_Hours_Last_Year))) + geom_point() + labs(x = "Ln(training hours last year)") + labs(y = "Ln(performance score)") +
+  scale_colour_hue(l=50) + # Use a slightly darker palette than normal
+  geom_smooth(method=lm,   # Add linear regression lines
+              se=TRUE,    # Don't add shaded confidence region
+              fullrange=TRUE) + # Extend regression lines
+  theme(axis.text.x = element_text(size=12), axis.text.y = element_text(size=12),
+        axis.title=element_text(size=12,face="bold"))
+```
+
+### Multicollinearity
+
+```{r}
+ep.data_numeric <- ep.data[c("Age","Salary", "Experience","Job_Satisfaction", "Work_Life_Balance", "Annual_Bonus","Commute_Time","Work_Hours_Per_Week", "Promotions_Last_5_Years","Training_Hours_Last_Year", "Overtime_Hours_Per_Week","Performance_Score")]
+```
+
+```{r}
+library(corrplot)
+
+round(cor(ep.data_numeric), 2)
+```
+
+```{r}
+corrplot(cor(ep.data_numeric))
+
+```
+Does not appear to be any significant multicollinearity. Does not appear interaction terms are needed to account for predictors that depend on eachother. 
+
+### Full Regression
+
+```{r}
+model.full <- lm(Performance_Score~., data=ep.data)
+summary(model.full)
+```
+

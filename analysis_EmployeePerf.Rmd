@@ -1,0 +1,373 @@
+---
+title: "Regression Analysis - MGT6203 Project"
+author: "bella"
+date: "2024-10-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+```{r}
+# import libraries
+library(ggplot2) 
+library(tidyverse) 
+library(broom)
+library(dplyr)
+library(tidyverse)
+library(ggpmisc)
+library(zoo)
+library(car)
+library(MASS)
+library(kableExtra)
+
+
+library(lars)
+library(MASS)
+library(glmnet)
+library(grpreg)
+library(scales)
+library(caret)
+
+options(dplyr.summarise.inform = FALSE) 
+```
+
+### Load and Pre-process data
+```{r}
+# Set seed for reproducibility
+set.seed(123)
+
+# read data
+ep.data <- read.csv("employee_performance.csv", header=TRUE)
+ep.data$Job_Satisfaction = as.factor(ep.data$Job_Satisfaction)
+ep.data$Work_Life_Balance = as.factor(ep.data$Work_Life_Balance)
+ep.data$Promotions_Last_5_Years = as.factor(ep.data$Promotions_Last_5_Years)
+
+# train/test split
+trainRows = sample.int(nrow(ep.data),size=ceiling(0.8*nrow(ep.data)))
+
+trainData = ep.data[trainRows,]
+testData = ep.data[-trainRows,]
+```
+
+
+### Full Regression
+
+Fit full regression using training set
+```{r}
+set.seed(123)
+model.full <- lm(Performance_Score~., data=trainData)
+summary(model.full)
+```
+
+#### Overall Significance
+
+The F-test is used to test for overall model significance with alpha=.01:
+
+  - null hypothesis: all the regression coefficients are zero
+  - alternative hypothesis: at least on regression coefficient is not zero
+
+Since the p-value for the F-test is less than 0.01, we can reject the null hypothesis and conclude the model is significant at the 0.01 significance level.
+
+### Goodness of Fit Assessment
+```{r}
+# add standardized residuals and fitted values 
+fittedData <- trainData
+fittedData$Standardized_Residuals <- rstandard(model.full)
+fittedData$Fitted_Values <- model.full$fitted.values
+```
+
+**1. LINEARITY**
+```{r}
+# plot standardized residuals model.full vs. the quantitative predictors to assess if linearity assumption holds for the predictors
+```
+
+**2. CONSTANT VARIANCE and 3. INDEPENDENCE (UNCORRELATED ERRORS)**
+```{r}
+# Fitted values Scatter Plot
+ggplot(data=fittedData, aes(x=Fitted_Values, y=Standardized_Residuals)) +
+  geom_point(color='black') +
+  ggtitle("Standardized Residuals vs Fitted Values") +
+  geom_hline(yintercept=0, color="red", size=0.3)
+```
+
+**4. NORMALITY**
+```{r}
+# histogram of standardized residuals: check normality, constant var, uncorr errors
+std.resids <- rstandard(model.full)
+hist(std.resids,main="Histogram of Standardized Residuals",  xlab="Standardized Residuals")
+
+# Q-Q plot: check normality
+qqPlot(std.resids, main="Normal QQ-Plot Standardized of Residuals", envelope=0.95,
+      xlab="Theoretical Quantiles", ylab="Sample Quantiles")
+```
+
+### Multi-collinearity
+
+```{r}
+vif.threshold <- 5
+
+vif.model.full <- round(vif(model.full),3)
+vif.model.full <- as.data.frame(vif.model.full)
+vif.model.full$exceedsThreshold <- ifelse(vif.model.full$GVIF > vif.threshold, "True", "False")
+kable(vif.model.full, caption = "Model1 VIFs")
+```
+
+### Outliers
+```{r}
+
+cooks.threshold <- 1
+
+# plot Cook’s distances for model1
+cook = cooks.distance(model.full)
+plot(cook, type="h", lwd=3,col="darkorange",
+  ylab = "Cook's Distance", main="Cook's Distance Plot")
+abline(h = cooks.threshold, lty = 2, col = "darkblue")
+```
+
+### Stepwise Variable Selection: Forward, Backward, Forward-Backward
+
+minimum model: The minimum model used for stepwise regression was the intercept-only model. This is because there are not controlling variables that we must enter in the model along with the intercept. 
+
+selection criteria: The AIC was used as the criteria to add variables in forward stepwise and remove variables in backward regression. 
+
+Forward-selection:
+
+  - AIC: 59485.7 
+  - BIC: 59555.57
+  - variables selected: (Intercept), Experience, Work_Hours_Per_Week, Age, Education_LevelBachelor, Education_LevelHigh School, Education_LevelMaster, Education_LevelPhD, Annual_Bonus
+
+Backward-selection:
+
+  - AIC: AIC: 59485.7 
+  - BIC: 59555.57
+  - variables selected: (Intercept), Experience, Work_Hours_Per_Week, Age, Education_LevelBachelor, Education_LevelHigh School, Education_LevelMaster, Education_LevelPhD, Annual_Bonus
+  
+Forward-Backward Model:
+  - AIC: 59485.7 
+  - BIC: 59555.57
+  - variables selected: (Intercept), Experience, Work_Hours_Per_Week, Age, Education_LevelBachelor, Education_LevelHigh School, Education_LevelMaster, Education_LevelPhD, Annual_Bonus
+
+#### Forward-Selection
+
+```{r}
+### Apply Stepwise to training data
+full.model <- lm(Performance_Score~., data=trainData)
+
+minimum.model <- lm(Performance_Score~1, data=trainData)
+
+# Forward
+stepwise_forward <- step(minimum.model ,scope = list(lower=minimum.model,upper=full.model), direction = "forward", k=2)
+
+summary(stepwise_forward)
+```
+
+```{r}
+n = nrow(trainData)
+# selected variables
+coef(stepwise_forward)
+
+# AIC and BIC
+cat("AIC:", AIC(stepwise_forward, k=2),"\n")
+cat("BIC:", AIC(stepwise_forward, k=log(n)))
+```
+
+### Backward-Selection
+```{r}
+# Backward
+stepwise_backward <- step(minimum.model ,scope = list(lower=minimum.model,upper=full.model), direction = "forward", k=2)
+```
+
+```{r}
+# selected variables
+coef(stepwise_backward)
+
+# AIC and BIC
+cat("AIC:", AIC(stepwise_backward, k=2),"\n")
+cat("BIC:", AIC(stepwise_backward, k=log(n)))
+```
+
+#### Both (Forward and Backward)
+```{r}
+# Both
+fwd_bkwd_model<- step(minimum.model ,scope = list(lower=minimum.model,upper=full.model), direction = "forward", k=2)
+```
+
+```{r}
+# filter for coefficients with a p-value <0.01
+which(summary(fwd_bkwd_model)$coeff[,4]<0.01)
+```
+
+```{r}
+# selected variables
+coef(fwd_bkwd_model)
+
+# AIC and BIC
+cat("AIC:", AIC(fwd_bkwd_model, k=2),"\n")
+cat("BIC:", AIC(fwd_bkwd_model, k=log(n)))
+```
+### Model Comparison
+
+```{r}
+stepwise_model = lm(Performance_Score ~ Experience+Work_Hours_Per_Week+Age+Education_Level+Annual_Bonus, data=trainData)
+
+stepwise_signif_only = lm(Performance_Score ~ Experience+Work_Hours_Per_Week+Age+Education_Level, data=trainData)
+```
+
+```{r}
+# compare full and stepwise
+anova(model.full, stepwise_model)
+```
+For anova(model.full, stepwise): The p-value is large in the ANOVA test comparing the full regression to the model selected with stepwise. This means we cannot reject the null hypothesis. The two models are not statistically significantly different at the 0.05 level. Hence, choose the reduced model becuase it has fewer predicting variables.
+
+```{r}
+anova(stepwise_model, stepwise_signif_only)
+```
+
+For anova(stepwise, signif_stepwise): The p-value is less than 0.05. This means there's at least one variable in stepwise_model that will improve the explanatory power of the model. Hence, choose stepwise_model over further reduced one.
+
+### Regularized Regression for Variable Selection:
+
+LASSO. Group LASSO, and Elastic Net are three regularized regression models that can be used for regularized regression. Elastic Net often outperforms LASSO, since Elastic Net leverages the L1 and L2 penalties, so it has the advantages of both LASSO and Ridge regression, whereas LASSO only uses the L1 penalty. 
+
+glmnet() will re-scale the predictor variables for regularized regression
+```{r}
+set.seed(123)
+# format predictors and response 
+x.train <- model.matrix(Performance_Score ~ ., trainData)[,-1]
+y.train <- trainData$Performance_Score
+```
+
+### Lasso
+```{r}
+# LASSO
+set.seed(123)
+## Find optimal lambda with 10-fold CV 
+lasso_model.cv = cv.glmnet(x.train,  y.train, alpha=1, nfolds=10)
+
+cat("optimal lambda:", lasso_model.cv$lambda.min)
+```
+
+```{r}
+set.seed(123)
+## Fit lasso model with 100 values for lambda
+lasso_model = glmnet(x.train, y.train, alpha=1, nlambda=100)
+
+## coefficients at optimal lambda
+coef(lasso_model, s=lasso_model.cv$lambda.min)
+
+## Plot coefficient paths
+plot(lasso_model , xvar="lambda", lwd=2, label=TRUE)
+abline(v=log(lasso_model.cv$lambda.min), col='black', lty=2, lwd=2)
+```
+
+### Elastic Net
+```{r}
+set.seed(123)
+# Find the optimal lambda using 10-fold CV for ELASTIC NET
+elastic_net_model.cv <- cv.glmnet(x.train, y.train, alpha=0.5, nfolds=10)
+
+cat("optimal lambda:", elastic_net_model.cv$lambda.min)
+ 
+# fit model for 100 values for lambda
+elastic_net_model <- glmnet(x = x.train, y = y.train, alpha=0.5, nlambda=100)
+
+## Extract coefficients at optimal lambda
+coef(elastic_net_model, s=elastic_net_model.cv$lambda.min)
+```
+
+```{r}
+set.seed(123)
+## Plot coefficient paths
+plot(elastic_net_model, xvar="lambda", lwd=2)
+abline(v=log(elastic_net_model.cv$lambda.min), col='black', lty=2, lwd=2)
+```
+
+### Decision Tree
+
+```{r}
+library(rpart)
+library(rpart.plot)
+set.seed(123)
+# Build the decision tree model
+decision_tree_model <- rpart(Performance_Score ~ ., data = trainData, method = "anova")
+
+# Print the model summary
+summary(decision_tree_model)
+```
+
+```{r}
+rpart.plot(decision_tree_model, type = 3, fallen.leaves = TRUE, cex = 0.7)
+```
+
+### Random Forest
+```{r}
+set.seed(123)
+library(randomForest)
+
+# for random forest
+rf_model <- randomForest(trainData$Performance_Score~.,data = trainData)
+
+```
+
+### Make Predictions
+
+```{r}
+## PREDICTIONS
+y.test <- testData$Performance_Score
+
+# full model
+predict.full <- predict(model.full,newdata=testData)
+
+# stepwise
+predict.stepwise <- predict(stepwise_model,newdata=testData)
+
+# LASSO
+# Retrain OLS using Lasso-selected predictors for better coeff estimates
+index.lasso <- which(coef(lasso_model, lasso_model.cv$lambda.min) == 0)
+lasso.predictors <- as.data.frame(x.train)[-(index.lasso-1)]
+lasso.retrained <- glm(y.train ~ ., data = lasso.predictors)
+# Set test data to correct format
+new_test <- model.matrix( ~ ., data=testData)[,-1]
+# get predicted probabilities for the test set
+predict.lasso = predict(lasso.retrained, newdata = as.data.frame(new_test),
+                     type = "response")
+
+# decision tree
+predict.dtree <- predict(decision_tree_model, testData)
+
+# random forest
+predict.rf <- predict(rf_model, testData, type="response")
+
+# function for predictions
+pred_metrics = function(model_name, actual, pred){
+  cat("\n", model_name, "\n")
+  mspe = mean((actual - pred)^2)
+  mae = mean(abs(actual-pred))
+  cat("mspe:", mspe, "\n", "mae:", mae, "\n")
+}
+
+# metrics for full model
+pred_metrics("Full Regression", y.test, predict.full)
+
+# metrics for forward stepwise
+pred_metrics("Stepwise", y.test, predict.stepwise)
+
+# metrics for lasso
+pred_metrics("LASSO", y.test, predict.lasso)
+
+# metrics for decision tree
+pred_metrics("Decision Tree", y.test, predict.dtree)
+
+# metrics for random forest
+pred_metrics("Random Forest Model", y.test, predict.rf)
+
+
+# adjusted r-squared for training set
+# summary(model.full)$adj.r.squared
+# summary(stepwise_model)$adj.r.squared
+
+```
+

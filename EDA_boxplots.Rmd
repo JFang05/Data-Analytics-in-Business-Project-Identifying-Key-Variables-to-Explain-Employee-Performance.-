@@ -1,0 +1,62 @@
+---
+title: "box_plots"
+output: html_document
+date: "2024-10-14"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+```
+
+# Reading in Data
+```{r}
+employee_data = read.csv("employee_performance.csv")
+head(employee_data)
+
+# Job Satisfaction, Work Life Balance, and Promotions Last 5 Years into Factor
+employee_data$Job_Satisfaction = as.factor(employee_data$Job_Satisfaction)
+employee_data$Work_Life_Balance = as.factor(employee_data$Work_Life_Balance)
+employee_data$Promotions_Last_5_Years = as.factor(employee_data$Promotions_Last_5_Years)
+head(employee_data)
+```
+
+# Constructing Box Plots
+
+```{r}
+# Education Level
+box_education = ggplot(data = employee_data,
+                       mapping = aes(x = Education_Level, y = Performance_Score)) + geom_boxplot()
+box_education
+```
+
+```{r}
+# Department
+box_department = ggplot(data = employee_data,
+                       mapping = aes(x = Department, y = Performance_Score)) + geom_boxplot()
+box_department
+```
+```{r}
+# Job Satisfaction
+box_satisfaction = ggplot(data = employee_data,
+                       mapping = aes(x = Job_Satisfaction, y = Performance_Score)) + geom_boxplot()
+box_satisfaction
+```
+
+```{r}
+# Work Life Balance
+box_wl = ggplot(data = employee_data,
+                       mapping = aes(x = Work_Life_Balance, y = Performance_Score)) + geom_boxplot()
+box_wl
+```
+
+
+```{r}
+# Promotions Last 5 years
+box_promotions = ggplot(data = employee_data,
+                       mapping = aes(x = Promotions_Last_5_Years, y = Performance_Score)) + geom_boxplot()
+box_promotions
+```

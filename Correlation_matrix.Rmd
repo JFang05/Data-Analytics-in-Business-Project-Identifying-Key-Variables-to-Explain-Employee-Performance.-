@@ -1,0 +1,650 @@
+---
+title: "MGT6203_group_project_outline"
+author: "bella"
+date: "2024-10-09"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message = FALSE, warning = FALSE}
+# Import libraries
+library(ggplot2) 
+library(tidyverse) 
+library(broom)
+library(dplyr)
+library(tidyverse)
+library(ggpmisc)
+library(zoo)
+library(car)
+library(reshape2)
+library(corrplot)
+options(dplyr.summarise.inform = FALSE) 
+```
+
+
+```{r}
+# Reads in the data
+ep.data <- read.csv("employee_performance.csv", 
+                    header=TRUE)
+```
+
+### Data Collection
+  - any missing data?
+  - if missing data, will we interpolate or remove observation?
+
+Checks for missing values
+```{r}
+sum(is.na(ep.data))
+```
+
+
+Checks the structure of the data
+```{r}
+str(ep.data)
+```
+
+Provides the summary statistics of the data
+```{r}
+summary(ep.data)
+```
+
+
+Prints out the first few rows of the data
+```{r}
+head(ep.data)
+```
+
+### Exploratory Data Analysis (EDA)
+
+
+- correlation matrix
+
+
+Prepares the data
+```{r}
+ep.data_numeric <- ep.data[c("Age","Salary", "Experience","Job_Satisfaction", 
+                             "Work_Life_Balance", "Annual_Bonus","Commute_Time",
+                             "Work_Hours_Per_Week", "Promotions_Last_5_Years",
+                             "Training_Hours_Last_Year", "Overtime_Hours_Per_Week",
+                             "Performance_Score")]
+head(ep.data_numeric)
+```
+
+
+Computes the correlation matrix
+```{r}
+ep.cormatrix <- round(cor(ep.data_numeric), 2)
+
+# Print the correlation matrix
+print(ep.cormatrix)
+```
+
+Creates the heatmap with the corresponding correlation coefficients
+```{r}
+corrplot(ep.cormatrix, 
+         method = "color",               # Use color for the heatmap
+         col = colorRampPalette(c("purple4", "white",
+                                  "violet"))(200),  # Color gradient
+         type = "full",                  # Show both upper and lower triangles
+         order = "original",               # Order by hierarchical clustering
+         addCoef.col = "black",          # Add correlation coefficients in black
+         tl.col = "black",               # Text label color
+         tl.srt = 90,                    # Text label rotation
+         diag = TRUE,                    # Show the diagonal
+         number.cex = 0.55, # Size of the correlation coefficient numbers
+         tl.cex = 0.55)
+```
+
+
+Creates a correlation heatmap with numbers using corrplot
+```{r}
+corrplot(ep.cormatrix, 
+         col = colorRampPalette(c("lightblue", "violet", 
+                                  "darkblue"))(200),
+         number.cex = 0.4, 
+         tl.cex = 0.6)
+```
+
+
+
+1. Overall Correlation for the Numeric values of the Employee dataset. 
+
+```{r}
+# Select numeric columns for the correlation matrix
+ep.numeric_vars <- ep.data %>%
+  dplyr::select(Age, Salary, Experience, 
+                Job_Satisfaction, 
+                Work_Life_Balance, 
+         Annual_Bonus, Commute_Time, 
+         Work_Hours_Per_Week, 
+         Promotions_Last_5_Years, 
+         Training_Hours_Last_Year, Overtime_Hours_Per_Week,
+         Performance_Score)
+
+# Computes the correlation matrix
+ep.overall_cormatrix <- round(cor(ep.numeric_vars), 2)
+
+# Prints out the correlation matrix
+print(ep.overall_cormatrix)
+```
+
+
+Creates the heatmap with the overall corresponding correlation coefficients
+```{r}
+corrplot(ep.overall_cormatrix, 
+         method = "color",               # Use color for the heatmap
+         col = colorRampPalette(c("darkblue", "white", 
+                                  "lightblue3"))(200),  # Color gradient
+         type = "full",                  # Show both upper and lower triangles
+         order = "original",               # Order by hierarchical clustering
+         addCoef.col = "black",          # Add correlation coefficients in black
+         tl.col = "black",               # Text label color
+         tl.srt = 90,                    # Text label rotation
+         diag = TRUE,                    # Show the diagonal
+         number.cex = 0.55, # Size of the correlation coefficient numbers
+         tl.cex = 0.6)
+```
+
+
+
+Creates a correlation heatmap with numbers using corrplot
+
+```{r}
+corrplot(ep.overall_cormatrix, 
+         col = colorRampPalette(c("blue", 
+                                  "lightgreen", "brown"))(200),
+         number.cex = 0.4, 
+         tl.cex = 0.6)
+
+```
+
+
+
+
+2. Correlation Matrices for Different Groups (Based on Categorical Variables)
+
+
+2.1 Correlation matrix by Department
+
+
+```{r}
+# Defines the numeric columns
+ep.numeric_columns <- c("Age", "Salary", "Experience", 
+                        "Job_Satisfaction", "Work_Life_Balance", 
+                     "Annual_Bonus", "Commute_Time", 
+                     "Work_Hours_Per_Week", 
+                     "Promotions_Last_5_Years", 
+                     "Training_Hours_Last_Year", 
+                     "Overtime_Hours_Per_Week", 
+                     "Performance_Score")
+
+# Split data by Department 
+Department <- unique(ep.data$Department)
+
+# Loop through each department level and calculate the correlation 
+# matrix for numeric variables
+for(departments in Department) {
+  # Filter the data for each department 
+  ep.department_data <- ep.data %>% filter(Department == departments)
+  
+  # Subset the data to only include numeric columns
+  ep.department_data_numeric <- ep.department_data %>% 
+    dplyr::select(all_of(ep.numeric_columns))
+  
+  # Calculate the correlation matrix
+  ep.department_cormatrix <- round(cor(ep.department_data_numeric), 2)
+  
+
+}
+
+```
+
+
+
+```{r}
+# Defines the variables needed for the analysis
+ep.engineering_data <- ep.data %>% filter(Department == "Engineering") %>% 
+  dplyr::select(all_of(ep.numeric_columns))
+ep.engineering_cormatrix <- round(cor(ep.engineering_data), 2)
+print(ep.engineering_cormatrix)
+```
+
+
+Creates a heatmap with the corresponding correlation coefficients for the Engineering Department
+```{r}
+corrplot(ep.engineering_cormatrix, 
+         method = "color",               # Use color for the heatmap
+         col = colorRampPalette(c("yellow", 
+                                  "white", 
+                                  "darkorange"))(200),  # Color gradient
+         type = "full",                  # Show both upper and lower triangles
+         order = "original",               # Order by hierarchical clustering
+         addCoef.col = "black",          # Add correlation coefficients in black
+         tl.col = "black",               # Text label color
+         tl.srt = 90,                    # Text label rotation
+         diag = TRUE,                    # Show the diagonal
+         number.cex = 0.55, # Size of the correlation coefficient numbers
+         tl.cex = 0.5)
+```
+
+Create a correlation heatmap with numbers using corrplot
+```{r}
+corrplot(ep.engineering_cormatrix, 
+         col = colorRampPalette(c("yellow", 
+                                  "green", "blue"))(200),
+         number.cex = 0.4, 
+         tl.cex = 0.6)
+```
+
+Defines the variables needed to create the Correlation Matrix and Heatmap for the Finance Department
+```{r}
+# Finance Department Correlation Matrix and Heatmap
+ep.finance_data <- ep.data %>% filter(Department == "Finance") %>% 
+  dplyr::select(all_of(ep.numeric_columns))
+ep.finance_cormatrix <- round(cor(ep.finance_data), 2)
+print(ep.finance_cormatrix)
+```
+
+Creates a heatmap with the corresponding correlation coefficients for the Finance Department
+```{r}
+corrplot(ep.finance_cormatrix, 
+         method = "color",               # Use color for the heatmap
+         col = colorRampPalette(c("lightblue", 
+                                  "white", "cyan"))(200),  # Color gradient
+         type = "full",                  # Show both upper and lower triangles
+         order = "original",               # Order by hierarchical clustering
+         addCoef.col = "black",          # Add correlation coefficients in black
+         tl.col = "black",               # Text label color
+         tl.srt = 90,                    # Text label rotation
+         diag = TRUE,                    # Show the diagonal
+         number.cex = 0.55, # Size of the correlation coefficient numbers
+         tl.cex = 0.6)
+```
+
+Create a correlation heatmap with numbers using corrplot
+```{r}
+corrplot(ep.finance_cormatrix, 
+         col = colorRampPalette(c("yellow", 
+                                  "gold", "darkorange"))(200),
+         number.cex = 0.4, 
+         tl.cex = 0.6)
+```
+
+
+Defines the variables needed to create the Correlation Matrix and Heatmap for the HR Department
+```{r}
+# HR Department
+ep.hr_data <- ep.data %>% filter(Department == "HR") %>% 
+  dplyr::select(all_of(ep.numeric_columns))
+ep.hr_cormatrix <- round(cor(ep.hr_data), 2)
+print(ep.hr_cormatrix)
+```
+
+Creates a heatmap with the corresponding correlation coefficients for the HR Department
+```{r}
+corrplot(ep.hr_cormatrix, 
+         method = "color",               # Use color for the heatmap
+         col = colorRampPalette(c("violet", "white",
+                                  "red1"))(200),  # Color gradient
+         type = "full",                  # Show both upper and lower triangles
+         order = "original",               # Order by hierarchical clustering
+         addCoef.col = "black",          # Add correlation coefficients in black
+         tl.col = "black",               # Text label color
+         tl.srt = 90,                    # Text label rotation
+         diag = TRUE,                    # Show the diagonal
+         number.cex = 0.55, # Size of the correlation coefficient numbers
+         tl.cex = 0.6)
+```
+
+Create a correlation heatmap with numbers using corrplot
+```{r}
+corrplot(ep.hr_cormatrix, 
+         col = colorRampPalette(c("orange", "green", 
+                                  "purple"))(200),
+         number.cex = 0.4, 
+         tl.cex = 0.55)
+```
+
+
+
+Defines the variables needed to create the Correlation Matrix and Heatmap for the Marketing Department
+```{r}
+# Marketing Department
+ep.marketing_data <- ep.data %>% filter(Department == "Marketing") %>% 
+  dplyr::select(all_of(ep.numeric_columns))
+ep.marketing_cormatrix <- round(cor(ep.marketing_data), 2)
+print(ep.marketing_cormatrix)
+```
+
+
+
+Creates a heatmap with the corresponding correlation coefficients for the Marketing Department
+```{r}
+corrplot(ep.marketing_cormatrix, 
+         method = "color",               # Use color for the heatmap
+         col = colorRampPalette(c("yellow", "white", 
+                                  "brown"))(200),  # Color gradient
+         type = "full",                  # Show both upper and lower triangles
+         order = "original",               # Order by hierarchical clustering
+         addCoef.col = "black",          # Add correlation coefficients in black
+         tl.col = "black",               # Text label color
+         tl.srt = 90,                    # Text label rotation
+         diag = TRUE,                    # Show the diagonal
+         number.cex = 0.55, # Size of the correlation coefficient numbers
+         tl.cex = 0.6)
+```
+
+
+
+Create a correlation heatmap with numbers using corrplot
+```{r}
+corrplot(ep.marketing_cormatrix, 
+         col = colorRampPalette(c("yellow", "darkorange",
+                                  "darkgreen"))(200),
+         tl.cex = 0.6)
+```
+
+
+
+
+Defines the variables needed to create the Correlation Matrix and Heatmap for the Operations Department
+```{r}
+# Operations Department
+ep.operations_data <- ep.data %>% filter(Department == "Operations") %>% 
+  dplyr::select(all_of(ep.numeric_columns))
+ep.operations_cormatrix <- round(cor(ep.operations_data), 2)
+print(ep.operations_cormatrix)
+```
+
+
+Creates a heatmap with the corresponding correlation coefficients for the Operations Department
+```{r}
+corrplot(ep.operations_cormatrix, 
+         method = "color",               # Use color for the heatmap
+         col = colorRampPalette(c("cyan", 
+                                  "white", "cyan4"))(200),  # Color gradient
+         type = "full",                  # Show both upper and lower triangles
+         order = "original",               # Order by hierarchical clustering
+         addCoef.col = "black",          # Add correlation coefficients in black
+         tl.col = "black",               # Text label color
+         tl.srt = 90,                    # Text label rotation
+         diag = TRUE,                    # Show the diagonal
+         number.cex = 0.55, # Size of the correlation coefficient numbers
+         tl.cex = 0.6)
+```
+
+
+Create a correlation heatmap with numbers using corrplot
+```{r}
+corrplot(ep.operations_cormatrix, 
+         col = colorRampPalette(c("yellow", 
+                                  "lightgreen", "blue4"))(200),
+         tl.cex = 0.6)
+```
+
+
+
+
+Defines the variables needed to create the Correlation Matrix and Heatmap for the Sales Department
+```{r}
+# Sales Department
+ep.sales_data <- ep.data %>% filter(Department == "Sales") %>% 
+  dplyr::select(all_of(ep.numeric_columns))
+ep.sales_cormatrix <- round(cor(ep.sales_data), 2)
+print(ep.sales_cormatrix)
+```
+
+Creates a heatmap with the corresponding correlation coefficients for the Sales Department
+```{r}
+corrplot(ep.sales_cormatrix, 
+         method = "color",               # Use color for the heatmap
+         col = colorRampPalette(c("deepskyblue", 
+                                  "white", "dodgerblue"))(200),  # Color gradient
+         type = "full",                  # Show both upper and lower triangles
+         order = "original",               # Order by hierarchical clustering
+         addCoef.col = "black",          # Add correlation coefficients in black
+         tl.col = "black",               # Text label color
+         tl.srt = 90,                    # Text label rotation
+         diag = TRUE,                    # Show the diagonal
+         number.cex = 0.55, # Size of the correlation coefficient numbers
+         tl.cex = 0.6)
+```
+
+Create a correlation heatmap with numbers using corrplot
+```{r}
+corrplot(ep.sales_cormatrix, 
+         col = colorRampPalette(c("violet", 
+                                  "deepskyblue", "blue"))(200),
+         tl.cex = 0.6)
+```
+
+
+2.2 Correlation Matrix by Education level
+```{r}
+# Define numeric columns 
+ep.numeric_columns <- c("Age", "Salary", "Experience", "Job_Satisfaction", 
+                        "Work_Life_Balance", 
+                     "Annual_Bonus", "Commute_Time", 
+                     "Work_Hours_Per_Week", 
+                     "Promotions_Last_5_Years", 
+                     "Training_Hours_Last_Year", 
+                     "Overtime_Hours_Per_Week", 
+                     "Performance_Score")
+
+# Split data by Education Level
+ep.education_levels <- unique(ep.data$Education_Level)
+
+# Loop through each education level and calculate the correlation matrix for numeric variables
+for(education in ep.education_levels) {
+  # Filter the data for each education level
+  ep.education_data <- ep.data %>% filter(Education_Level == education)
+  
+  # Subset the data to only include numeric columns
+  ep.education_data_numeric <- ep.education_data %>% dplyr::select(all_of(ep.numeric_columns))
+  
+  # Calculate the correlation matrix
+  ep.education_cormatrix <- round(cor(ep.education_data_numeric), 2)
+  
+}
+```
+
+
+
+Defines the variables needed to create the Correlation Matrix and Heatmap for the Associate Degree Education Level
+```{r}
+# Associate Degree Correlation Matrix and Heatmap
+ep.associate_data <- ep.data %>% filter(Education_Level == "Associate") %>% 
+  dplyr::select(all_of(ep.numeric_columns))
+ep.associate_cormatrix <- round(cor(ep.associate_data), 2)
+print(ep.associate_cormatrix)
+```
+
+Creates a heatmap with the corresponding correlation coefficients for the Associate Degree Education Level
+```{r}
+corrplot(ep.associate_cormatrix, 
+         method = "color",               # Use color for the heatmap
+         col = colorRampPalette(c("gold", "white", "gold3"))(200),  # Color gradient
+         type = "full",                  # Show both upper and lower triangles
+         order = "original",               # Order by hierarchical clustering
+         addCoef.col = "black",          # Add correlation coefficients in black
+         tl.col = "black",               # Text label color
+         tl.srt = 90,                    # Text label rotation
+         diag = TRUE,                    # Show the diagonal
+         number.cex = 0.55, # Size of the correlation coefficient numbers
+         tl.cex = 0.6)
+```
+
+Create a correlation heatmap with numbers using corrplot
+```{r}
+corrplot(ep.associate_cormatrix, 
+         col = colorRampPalette(c("yellow", 
+                                  "lightgreen", "deepskyblue"))(200),
+         tl.cex = 0.55)
+```
+
+
+Defines the variables needed to create the Correlation Matrix and Heatmap for the Bachelor's Degree Education Level
+```{r}
+# Bachelor Degree Correlation Matrix and Heatmap
+ep.bachelor_data <- ep.data %>% filter(Education_Level == "Bachelor") %>% 
+  dplyr::select(all_of(ep.numeric_columns))
+ep.bachelor_cormatrix <- round(cor(ep.bachelor_data), 2)
+print(ep.bachelor_cormatrix)
+```
+
+Creates a heatmap with the corresponding correlation coefficients for the Bachelor's Degree Education Level
+```{r}
+corrplot(ep.bachelor_cormatrix, 
+         method = "color",               # Use color for the heatmap
+         col = colorRampPalette(c("pink", 
+                                  "white", "deeppink"))(200),  # Color gradient
+         type = "full",                  # Show both upper and lower triangles
+         order = "original",               # Order by hierarchical clustering
+         addCoef.col = "black",          # Add correlation coefficients in black
+         tl.col = "black",               # Text label color
+         tl.srt = 90,                    # Text label rotation
+         diag = TRUE,                    # Show the diagonal
+         number.cex = 0.55, # Size of the correlation coefficient numbers
+         tl.cex = 0.6)
+```
+
+Create a correlation heatmap with numbers using corrplot
+```{r}
+corrplot(ep.bachelor_cormatrix, 
+         col = colorRampPalette(c("yellow", 
+                                  "green", "darkgreen"))(200),
+         tl.cex = 0.55)
+```
+
+
+
+
+Defines the variables needed to create the Correlation Matrix and Heatmap for the High School Degree Education Level
+```{r}
+# High School Correlation Matrix and Heatmap
+ep.highschool_data <- ep.data %>% filter(Education_Level == "High School") %>% 
+  dplyr::select(all_of(ep.numeric_columns))
+ep.highschool_cormatrix <- round(cor(ep.highschool_data), 2)
+print(ep.highschool_cormatrix)
+```
+
+
+Creates a heatmap with the corresponding correlation coefficients for the High School Degree Education Level
+```{r}
+corrplot(ep.highschool_cormatrix, 
+         method = "color",               # Use color for the heatmap
+         col = colorRampPalette(c("lightpink", 
+                                  "white", 
+                                  "mediumorchid"))(200),  # Color gradient
+         type = "full",                  # Show both upper and lower triangles
+         order = "original",               # Order by hierarchical clustering
+         addCoef.col = "black",          # Add correlation coefficients in black
+         tl.col = "black",               # Text label color
+         tl.srt = 90,                    # Text label rotation
+         diag = TRUE,                    # Show the diagonal
+         number.cex = 0.55, # Size of the correlation coefficient numbers
+         tl.cex = 0.6)
+```
+
+
+Create a correlation heatmap with numbers using corrplot
+```{r}
+corrplot(ep.highschool_cormatrix,
+         col = colorRampPalette(c("yellow", 
+                                  "orange", "darkred"))(200),
+         tl.cex = 0.55)
+```
+
+
+
+Defines the variables needed to create the Correlation Matrix and Heatmap for the Master's Degree Education Level
+```{r}
+# Master Degree Correlation Matrix and Heatmap
+ep.master_data <- ep.data %>% filter(Education_Level == "Master") %>% 
+  dplyr::select(all_of(ep.numeric_columns))
+ep.master_cormatrix <- round(cor(ep.master_data), 2)
+print(ep.master_cormatrix)
+```
+
+
+Creates a heatmap with the corresponding correlation coefficients for the Master's Degree Education Level
+```{r}
+corrplot(ep.master_cormatrix, 
+         method = "color",               # Use color for the heatmap
+         col = colorRampPalette(c("salmon", 
+                                  "white", 
+                                  "salmon3"))(200),  # Color gradient
+         type = "full",                  # Show both upper and lower triangles
+         order = "original",               # Order by hierarchical clustering
+         addCoef.col = "black",          # Add correlation coefficients in black
+         tl.col = "black",               # Text label color
+         tl.srt = 90,                    # Text label rotation
+         diag = TRUE,                    # Show the diagonal
+         number.cex = 0.55, # Size of the correlation coefficient numbers
+         tl.cex = 0.6)
+```
+
+
+Create a correlation heatmap with numbers using corrplot
+```{r}
+corrplot(ep.master_cormatrix, 
+         col = colorRampPalette(c("lightgreen", 
+                                  "lightblue", "darkred"))(200),
+         tl.cex = 0.55)
+```
+
+
+Defines the variables needed to create the Correlation Matrix and HEatmap for the PhD Degree Education Level
+```{r}
+# PhD Correlation Matrix and Heatmap
+ep.phd_data <- ep.data %>% filter(Education_Level == "PhD") %>% 
+  dplyr::select(all_of(ep.numeric_columns))
+ep.phd_cormatrix <- round(cor(ep.phd_data), 2)
+print(ep.phd_cormatrix)
+```
+
+
+Creates a heatmap with the corresponding correlation coefficients for the PhD Degree Education Level
+```{r}
+corrplot(ep.phd_cormatrix, 
+         method = "color",               # Use color for the heatmap
+         col = colorRampPalette(c("cadetblue1", 
+                                  "white", 
+                                  "cyan4"))(200),  # Color gradient
+         type = "full",                  # Show both upper and lower triangles
+         order = "original",               # Order by hierarchical clustering
+         addCoef.col = "black",          # Add correlation coefficients in black
+         tl.col = "black",               # Text label color
+         tl.srt = 90,                    # Text label rotation
+         diag = TRUE,                    # Show the diagonal
+         number.cex = 0.55, # Size of the correlation coefficient numbers
+         tl.cex = 0.6)
+```
+
+
+Create a correlation heatmap with numbers using corrplot
+```{r}
+corrplot(ep.phd_cormatrix, 
+         col = colorRampPalette(c("yellow", "green",
+                                  "blue"))(200),
+         tl.cex = 0.55)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
