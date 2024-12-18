@@ -1,0 +1,174 @@
+---
+title: "MGT6203_group_project_outline"
+author: "bella"
+date: "2024-10-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# import libraries
+library(ggplot2) 
+library(tidyverse) 
+library(broom)
+library(dplyr)
+library(tidyverse)
+library(ggpmisc)
+library(zoo)
+library(car)
+options(dplyr.summarise.inform = FALSE) 
+
+ep.data <- read.csv("employee_performance.csv", header=TRUE)
+```
+
+### Data Collection
+  - any missing data?
+  - if missing data, will we interpolate or remove observation?
+
+Checks for missing values
+```{r}
+sum(is.na(ep.data))
+```
+
+
+Checks the structure of the data
+```{r}
+str(ep.data)
+```
+
+```{r}
+summary(ep.data)
+```
+
+
+
+```{r}
+print(ep.data)
+```
+
+
+### Exploratory Data Analysis (EDA)
+
+
+# Creates the scatter plots (with simple linear regression line) for all quantitative variables
+
+
+```{r}
+# Creating a scatterplot for Performance Score vs. Age
+ggplot(ep.data, aes(x=Age, y=Performance_Score)) +
+  geom_point() +
+  geom_smooth(method = lm, color="blue")+
+  labs(title="Performance Score vs. Age", x = "Age", 
+       y="Performance Score")
+
+
+# Creating a scatterplot for Performance Score vs. Salary
+ggplot(ep.data, aes(x=Salary, y=Performance_Score)) +
+  geom_point() +
+  geom_smooth(method = lm, color="red")+
+  labs(title="Performance Score vs. Salary", x = "Salary", 
+       y="Performance Score")
+
+
+
+
+# Creating a scatterplot for Performance Score vs. Experience 
+ggplot(ep.data, aes(x=Experience, y=Performance_Score)) +
+  geom_point() +
+  geom_smooth(method=lm, color="orange")+
+  labs(title="Performance Score vs. Experience ", 
+       x = "Experience ", 
+       y="Performance Score")
+
+
+# Creating a catterplot for Performance Score vs. Job Satisfaction
+ggplot(ep.data, aes(x=Job_Satisfaction, y=Performance_Score)) +
+  geom_point() +
+  geom_smooth(method = lm, color="green")+
+  labs(title="Performance Score vs. Job Satisfaction", 
+       x = "Experience Level", 
+       y="Performance Score")
+
+# Creating a scatterplot for Performance Score vs. Work Life Balance 
+ggplot(ep.data, aes(x=Work_Life_Balance, y=Performance_Score)) +
+  geom_point() +
+  geom_smooth(method = lm, color="purple")+
+  labs(title="Performance Score vs. Job Satisfaction", 
+       x = "Work Life Balance", 
+       y="Performance Score")
+
+
+# Creating a scatterplot for Performance Score vs. Annual Bonus 
+ggplot(ep.data, aes(x=Annual_Bonus, y=Performance_Score)) +
+  geom_point() +
+  geom_smooth(method=lm, color="violet")+
+  labs(title="Performance Score vs. Annual Bonus", 
+       x = "Annual Bonus", 
+       y="Performance Score")
+
+
+# Creating a scatterplot for Performance Score vs. Commute Time 
+ggplot(ep.data, aes(x=Commute_Time, y=Performance_Score)) +
+  geom_point() +
+  geom_smooth(method = lm, color="green")+
+  labs(title="Performance Score vs. Commute Time", 
+       x = "Commute Time", 
+       y="Performance Score")
+
+
+# Creating a scatterplot for Performance Score vs. Hours worked per week 
+ggplot(ep.data, aes(x=Work_Hours_Per_Week, y=Performance_Score)) +
+  geom_point() +
+  geom_smooth(method = lm, color="darkgreen")+
+  labs(title="Performance Score vs. Work Hours per Week", 
+       x = "Work Hours per Week", 
+       y="Performance Score")
+
+
+# Creating a scatterplot for Performance Score vs. Promotions Last 5 Years 
+ggplot(ep.data, aes(x=Promotions_Last_5_Years, y=Performance_Score)) +
+  geom_point() +
+  geom_smooth(method = lm, color="lightblue")+
+  labs(title="Performance Score vs. Promortion Last 5 Years", 
+       x = "Promotions Last 5 years", 
+       y="Performance Score")
+
+
+# Creating a scatterplot for Performance Score vs. Training Hours Last Year 
+ggplot(ep.data, aes(x=Training_Hours_Last_Year, y=Work_Hours_Per_Week)) +
+  geom_point() +
+  geom_smooth(method = lm, color="red")+
+  labs(title="Performance Score vs. Training Hours Last Year", 
+       x = "Training Hours Last Year", 
+       y="Performance Score")
+
+# Creating a scatterplot for Performance Score vs. Overtime Hours per Week
+ggplot(ep.data, aes(x=Overtime_Hours_Per_Week, y=Work_Hours_Per_Week)) +
+  geom_point() +
+  geom_smooth(method = lm, color="mediumslateblue")+
+  labs(title="Performance Score vs. Overtime Hours Per Week", 
+       x = "Overtime Hours Per Week", 
+       y="Performance Score")
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
